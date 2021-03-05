@@ -1,0 +1,142 @@
+
+<html>
+var subj_id = Math.round(Math.random() * 9)+1
+  console.log(subj_id)   
+  var subjid_str = subj_id.toString();
+  fn_format = 'statlearn_noise_test_subj_'
+  json_fn = fn_format.concat(subjid_str)
+  json_fn = json_fn.concat('.json')
+  console.log(json_fn)
+
+  fetch(json_fn)
+  .then(function (resp) { return resp.json() })
+  .then(function (stimuli) { startJsPsychExperiment(stimuli) })
+  .catch(function (err) { console.log(err) })
+
+function startJsPsychExperiment(stimuli) {
+  
+   console.log(stimuli);
+   
+   var subject_id = jsPsych.randomization.randomID(20)
+   var start_time =  new Date();
+
+   jsPsych.data.addProperties({
+        subject: subject_id,
+        starttime: start_time
+    });
+
+    
+   var i = 0;
+   var condition = [];
+
+    while (stimuli[i]) {
+        condition.push({target: `${stimuli[i].target}`, stim1: `${stimuli[i].stim1}`, 
+        stim2:`${stimuli[i].stim2}`});
+        i += 1;
+    }
+    console.log(condition)
+  /* create timeline */
+  var timeline = [];
+
+
+ /* define wellcome message */
+    var welcome = {
+    type: "html-keyboard-response",
+    stimulus: "Welcome to the experiment. Press any key to begin."
+  };
+
+  timeline.push(welcome);
+
+
+    var instruction1 = {
+    type: "html-keyboard-response",
+    stimulus: "<p>In this study, you will find the target image from a stream of two images. " +
+        "</p><p>You will first see the target at the beginning of the trial. </p>" +
+        "<br> Then, you will see two images one at a time <br> and will be asked to report which one of the two was the target image. </br>"+
+        "<p><i>Press any key to continue</i></p>",
+    post_trial_gap: 500
+  };
+
+  timeline.push(instruction1);
+  
+  var instruction2 = {
+    type: "html-keyboard-response",
+    stimulus: "<p> If the first picture is the target, you will press <strong>d</strong> key. <br>" +
+        "If the second picture is the target, you will press <strong>k</strong> key." +
+        "<p> Some images will be covered by random noise. <br> If you're not sure, feel free to guess." +
+        "<p> You don't have to remember the key instruction. " +
+        "<p><i>Press any key to begin! </i></p>",
+    post_trial_gap: 500
+  };
+  
+  timeline.push(instruction2);
+  /* FIXATION  */
+  var fixation = {
+      type: 'image-keyboard-response',
+      stimulus: jsPsych.timelineVariable('target'),
+      prompt: '<p> ::: Target image :::  </p>' +
+      "<p> press spacebar to start </p>",
+      choice: 32,
+      stimulus_width: 215,
+      stimulus_height: 200,
+      data: {trial_type: 'fixation'},
+      post_trial_gap: 500
+  };
+
+  var test1 = {
+      type: "image-keyboard-response",
+      stimulus: jsPsych.timelineVariable('stim1'),
+      choices: ['h'],
+      stimulus_width: 215,
+      stimulus_height: 200,
+      response_ends_trial: false,
+      trial_duration: 400,
+      post_trial_gap: 400,
+      data: {trial_type: 'stim1'}
+  };
+
+  var test2 = {
+      type: "image-keyboard-response",
+      stimulus: jsPsych.timelineVariable('stim2'),
+      choices: ['h'],
+      stimulus_width: 215,
+      stimulus_height: 200,
+      response_ends_trial: false,
+      trial_duration: 400,
+      data: {trial_type: 'stim2'},
+      post_trial_gap: 400
+  };
+
+  var response = {
+      type: "html-keyboard-response",
+      stimulus: "<p> Which one was the target? <br> First (<strong>d</strong>) or Second (<strong>k</strong>)?",
+      response_ends_trial: true,
+      choices: ['d', 'k'],
+      data: {trial_type: 'response'},
+      post_trial_gap: 500
+  }
+
+  var test_procedure ={
+      timeline: [fixation, test1,test2, response],
+      timeline_variables: condition
+  }
+
+  timeline.push(test_procedure);
+
+  var end = {
+      type: "html-keyboard-response",
+      stimulus: "<p> Thank you! </p> <p Press any key to finish. </p>"
+  }
+
+  timeline.push(end)
+
+  var end_time = new Date();
+     jsPsych.data.addProperties({
+          endtime: end_time
+      });
+
+  jsPsych.init({
+    timeline: timeline
+  });
+}
+</html>
